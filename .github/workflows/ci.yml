@@ -89,4 +89,4 @@ jobs:
         run: npm test
 
       - name: Build Docker image
-        run: docker build -t chickenapp:latest .
+        run: docker build -t chickenapp:latest -f ./Dockerfile .
