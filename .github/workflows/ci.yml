@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run tests
+        run: npm test
+
       - name: Build (vite)
         run: npm run build
 
@@ -39,6 +42,7 @@ jobs:
   backend:
     name: Backend (Node + Express + MongoDB)
     runs-on: ubuntu-latest
+    needs: frontend
     defaults:
       run:
         working-directory: ./backend
@@ -50,6 +54,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: ./backend/public
 
       - name: Wait for MongoDB to be ready
         run: |
@@ -71,8 +81,12 @@ jobs:
 
       - name: Create .env for CI (do NOT commit .env to repo)
         run: |
-          echo "MONGO_URI=mongodb://localhost:27017/chickenapp_ci" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "MONGO_URI=mongodb://localhost:27017/chickenapp_ci" > .env
+          echo "JWT_SECRET=secret123" >> .env
           echo "NODE_ENV=test" >> .env
 
-      
+      - name: Run tests
+        run: npm test
+
+      - name: Build Docker image
+        run: docker build -t chickenapp:latest .
